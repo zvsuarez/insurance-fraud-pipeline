@@ -5,6 +5,29 @@ import datetime
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+class TemporalCleaner(BaseEstimator, TransformerMixin):
+    def __init__(self, variable):
+        if not isinstance(variable, list):
+            raise ValueError('Variables should be a list')
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        pass
+
+
+class CyclicalTransform(BaseEstimator, TransformerMixin):
+    def __init__(self, variable):
+        if not isinstance(variable, list):
+            raise ValueError('Variables should be a list')
+        
+    def fit(self, X, y=None):
+        pass
+
+    def transform(self, X):
+        pass
+
 
 class Mapper(BaseEstimator, TransformerMixin):
     def __init__(self, variable, mappings):
@@ -20,30 +43,4 @@ class Mapper(BaseEstimator, TransformerMixin):
     def transform(self, X):
         pass
 
-
-class TemporalTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, num_temp, cat_temp):
-
-        if not isinstance(num_temp, list):
-            raise ValueError('Variables should be a list')
-        
-        if not isinstance(cat_temp, list):
-            raise ValueError('Variables should be a list')
-        
-        for item in num_temp:
-            if not isinstance(item, (int, float)):
-                raise ValueError('Items should be integers or floats')
-            
-        for item in cat_temp:
-            if not isinstance(item, str):
-                raise ValueError('Items should be strings')
-            
-        self.num_temp = num_temp
-        self.cat_temp = cat_temp
-            
-    def fit(self, X, y=None):
-        return self
-    
-    def transform(self, X):
-        pass
 
