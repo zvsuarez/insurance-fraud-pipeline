@@ -3,33 +3,58 @@ import numpy as np
 import pandas as pd
 import datetime
 from sklearn.base import BaseEstimator, TransformerMixin
+from scipy import stats
 
 
-class TemporalCleaner(BaseEstimator, TransformerMixin):
+class TemporalClean(BaseEstimator, TransformerMixin):
     def __init__(self, variable):
         if not isinstance(variable, list):
             raise ValueError('Variables should be a list')
+        
+        self.variable = variable
         
     def fit(self, X, y=None):
         return self
     
     def transform(self, X):
-        pass
+        X = X.copy()
+
+        for feature in self.variable:
+            if feature == 'DayOfWeekClaimed' or feature == 'DayOfWeek':
+                X[feature] = X[feature].replace('0', 'Monday')
+            if feature == 'WeekOfMonthClaimed' or feature == 'WeekOfMonth':
+                X[feature] = X[feature].replace('0', 1)
+            if feature == 'MonthClaimed' or feature == 'Month':
+                X[feature] = X[feature].replace('0', 'Jan')
+
+        return X
 
 
-class CyclicalTransform(BaseEstimator, TransformerMixin):
+class TemporalCycleTransform(BaseEstimator, TransformerMixin):
     def __init__(self, variable):
         if not isinstance(variable, list):
             raise ValueError('Variables should be a list')
+        
+        self.variable = variable
         
     def fit(self, X, y=None):
         pass
 
     def transform(self, X):
-        pass
+        X = X.copy()
+
+        for feature in self.variable:
+            if feature == 'MonthClaimed' or feature == 'Month':
+                X[feature+'_sin'] = np.sin(2 * np.pi * X[feature] / 12)
+                X[feature+'_cos'] = np.cos(2 * np.pi * X[feature] / 12)
+            if feature == 'DayOfWeekClaimed' or feature == 'DayOfWeek':
+                X[feature+'_sin'] = np.sin(2 * np.pi * X[feature] / 7)
+                X[feature+'_cos'] = np.cos(2 * np.pi * X[feature] / 7)
+
+        return X
 
 
-class Mapper(BaseEstimator, TransformerMixin):
+class MapTransform(BaseEstimator, TransformerMixin):
     def __init__(self, variable, mappings):
         if not isinstance(variable, list):
             raise ValueError('Variables should be a list')
@@ -37,10 +62,42 @@ class Mapper(BaseEstimator, TransformerMixin):
         if not isinstance(mappings, dict):
             raise ValueError('Mapping should be a dictionary')
         
+        self.variable = variable
+        self.mappings = mappings
+        
     def fit(self, X, y=None):
         return self
     
     def transform(self, X):
-        pass
+        X = X.copy()
+
+        for feature in self.variable:
+            X[feature] = X[feature].map(self.mappings)
+        
+        return X
 
 
+class AgeTransform(BaseEstimator, TransformerMixin):
+    def __init__(self, variable):
+        if not isinstance(variable, list):
+            raise ValueError('Variables should be a list')
+        
+        self.variable = variable
+        self.bins = [0, 18, 24, 34, 49, 64, 100]
+        self.labels = ['Under 18', 'Very young', 'Young adult', 'Middle-aged', 'Older adult', 'Senior']
+        
+    def fit(self, X, y=None):
+        self.mean_exc_zero_val = X[X[self.variable] > 0][self.variable].mean().to_dict()
+        #                        df[df[['Age', 'Year']]>0][['Age', 'Year']].mean().to_dict()
+        return self
+    
+    def transform(self, X):
+        X = X.copy()
+
+        for feature in self.variable:
+            #X[feature] = X[feature].replace(0, self.mean_exc_zero_val[feature], inplace=True)
+            X[feature] = X[feature].apply(lambda z: self.mean_exc_zero_val[feature] if z <=0 else z)
+            X[feature], _ = stats.boxcox(X[feature])
+            X[feature+'Group'] = pd.cut(X[feature], bins=self.bins, labels=self.labels)
+            
+        return X
