@@ -79,6 +79,10 @@ class MapTransform(BaseEstimator, TransformerMixin):
             X[feature] = X[feature].map(self.mappings)
         
         return X
+    
+    def get_feature_names_out(self, input_features=None):
+        # Return a list with the name of the output features
+        return self.variable
 
 
 # custom class for transforming the Age column
