@@ -18,6 +18,7 @@ class CleanTransform(BaseEstimator, TransformerMixin):
     
     def transform(self, X):
         X = X.copy()
+        
         # replace features that should not have 0 values
         for feature in self.variable:
             if feature == 'DayOfWeek':
@@ -38,7 +39,7 @@ class CoSineTransform(BaseEstimator, TransformerMixin):
         self.variable = variable
         
     def fit(self, X, y=None):
-        pass
+        return self
 
     def transform(self, X):
         X = X.copy()
@@ -52,7 +53,6 @@ class CoSineTransform(BaseEstimator, TransformerMixin):
                 X[feature+'_sin'] = np.sin(2 * np.pi * X[feature] / 12)
                 X[feature+'_cos'] = np.cos(2 * np.pi * X[feature] / 12)
             
-
         return X
 
 
@@ -68,11 +68,8 @@ class DropTransform(BaseEstimator, TransformerMixin):
         return self
     
     def transform(self, X):
-        return X.drop(columns=self.variable) # inplace=False on default and returns a copy
-    
-    def get_feature_names_out(self, input_features=None):
-        # Return a list with the name of the output features
-        return self.variable
+        # inplace=False is default so automatically returns a copy
+        return X.drop(columns=self.variable)
 
 
 # custom class for features with mappings
