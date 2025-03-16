@@ -77,6 +77,8 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+feature_selection.ipynb
+cross_val_grid.ipynb
 
 # IPython
 profile_default/
