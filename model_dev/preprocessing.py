@@ -100,6 +100,18 @@ class MapTransform(BaseEstimator, TransformerMixin):
         return self.variable
     
 
+# custom class for resetting index
+class ResetIndexTransform(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        X = X.copy()
+        X = pd.DataFrame(X).reset_index(drop=True)
+        
+        return X
+    
+
 """class PandasWrapper(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
